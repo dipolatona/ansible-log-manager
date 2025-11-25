@@ -1,0 +1,23 @@
+# Logrotate configuration for custom-monitor logs.
+# This file is managed by Ansible. Do not edit manually.
+
+{{ custom_monitor_log_dir }}/*.log {
+    daily              # Rotate logs daily
+    rotate 7
+                       # Keep the most recent 7 days of logs
+    compress           # Compress rotated logs
+    missingok          # Skip rotation if logs are missing
+    notifempty         # Do not rotate empty (0-byte) logs
+
+    # Create new log files after rotation
+    create 0644 root root
+
+    sharedscripts      # Run postrotate script only once for all matching logs
+
+    postrotate
+        # Reload custom-monitor service after rotation.
+        systemctl reload custom-monitor.service  >/dev/null 2>&1 || true
+    endscript
+}
+
+
