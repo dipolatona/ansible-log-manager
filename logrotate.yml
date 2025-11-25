@@ -1,0 +1,25 @@
+---
+# This playbook configures log rotation for the custom-monitor systemd service logs
+#  and ensures the log directory exists with correct permissions.
+
+- name: Configure log rotation for custom-monitor.service logs
+  hosts: sre-log-rotate
+  become: true
+  vars:
+    custom_monitor_log_dir: /var/log/custom-monitor
+    custom_monitor_logrotate_conf: /etc/logrotate.d/custom-monitor
+
+  tasks:
+  # Verify/create log directory with 0755 permission
+    - name: Verify/create log directory with 0755 permission
+      file:
+        path: "{{ custom_monitor_log_dir }}"
+        state: directory
+        mode: "0755"
+
+# Deploy logrotate config by using jinja2 template in templates/custom-monitor.logrotate.j2
+    - name: Deploy logrotate config
+      template:
+        src: custom-monitor.logrotate.j2
+        dest: "{{ custom_monitor_logrotate_conf }}"
+        mode: "0644"
