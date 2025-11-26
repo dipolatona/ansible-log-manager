@@ -8,6 +8,7 @@
   vars:
     custom_monitor_log_dir: /var/log/custom-monitor
     custom_monitor_logrotate_conf: /etc/logrotate.d/custom-monitor
+    prune_run: false
 
   tasks:
   # Verify/create log directory with 0755 permission
@@ -23,3 +24,16 @@
         src: custom-monitor.logrotate.j2
         dest: "{{ custom_monitor_logrotate_conf }}"
         mode: "0644"
+
+  # - Prune logs after 30 days 
+    - name: Prune logs after 30 days
+      command:
+        cmd: "find {{ custom_monitor_log_dir }} -type f -mtime +30 -delete"
+      when: "prune_run == true"
+        
+    
+    # Fail if directory is higher than 500MB
+    - name: Fail if directory is higher than 500MB
+      shell: "du -b {{ custom_monitor_log_dir }} | awk '{print $1}'"
+      register: filesize_output
+      failed_when: "{{ filesize_output.stdout | int }} > (500 * 1024 * 1024)"
